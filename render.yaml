@@ -4,14 +4,15 @@ services:
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn "app:app" --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 120
+    startCommand: gunicorn "app:app" --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 120
+    healthCheckPath: /health
     envVars:
       - key: FLASK_ENV
         value: production
       - key: FLASK_SECRET_KEY
         generateValue: true
       - key: PYTHON_VERSION
-        value: "3.12.0"
+        value: "3.12.8"
       - key: IPS_ADMIN_USER
         value: admin
       - key: IPS_ADMIN_PASSWORD

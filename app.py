@@ -1,6 +1,7 @@
 from io import BytesIO
 from datetime import datetime
 from flask import Flask, abort, g, jsonify, redirect, render_template, request, send_file, session, url_for
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from config import BANCO_MACRO, FLASK_ENV, METODOS_DEPOSITO, SECRET_KEY
 from database import init_db
@@ -13,6 +14,8 @@ app.secret_key = SECRET_KEY
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["SESSION_COOKIE_SECURE"] = FLASK_ENV == "production"
+# Render / Cloudflare envían X-Forwarded-* ; sin esto fallan redirects y cookies seguras
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
 
 @app.before_request
@@ -43,7 +46,7 @@ def inject_template_globals():
 @app.route("/")
 def index():
     if not g.user:
-        return redirect(url_for("login"))
+        return render_template("login.html", error=None)
     return render_template("index.html", user=g.user)
 
 
