@@ -1,0 +1,22 @@
+{% if convenio %}
+<section class="barra-convenio" aria-label="Datos del convenio Banco Macro">
+  <div class="barra-convenio-inner">
+    <div class="barra-convenio-item">
+      <span class="barra-label">Convenio Macro</span>
+      <strong class="barra-valor">{{ convenio }}</strong>
+    </div>
+    <div class="barra-convenio-item">
+      <span class="barra-label">Grupo de deudas</span>
+      <strong class="barra-valor">{{ macro.grupo_deudas }}</strong>
+    </div>
+    <div class="barra-convenio-item">
+      <span class="barra-label">Código servicio</span>
+      <strong class="barra-valor">{{ macro.codigo_servicio }}</strong>
+    </div>
+    <div class="barra-convenio-item barra-convenio-ayuda">
+      <span class="barra-label">Mesa de ayuda Macro</span>
+      <strong class="barra-valor">{{ macro.mesa_ayuda }}</strong>
+    </div>
+  </div>
+</section>
+{% endif %}

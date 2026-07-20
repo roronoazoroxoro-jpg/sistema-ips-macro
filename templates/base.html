@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0a3528">
+  <meta name="description" content="Sistema IPS Misiones — Rendición digital de cajas de farmacias adheridas vía Banco Macro">
+  <title>{% block title %}IPS — Depósitos Macro{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}?v=4">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  <header class="cabecera">
+    <div class="cabecera-inner">
+      <a class="logo" href="{{ url_for('index') if user else url_for('login') }}">
+        <span class="logo-marca" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </span>
+        <span class="logo-texto">
+          <strong>Instituto de Previsión Social</strong>
+          <span>Provincia de Misiones · Recaudaciones Banco Macro</span>
+        </span>
+      </a>
+      <nav class="nav-principal" aria-label="Principal">
+        {% if user %}
+        <a href="{{ url_for('index') }}" {% if request.endpoint == 'index' %}class="activo"{% endif %}>Inicio</a>
+        <a href="{{ url_for('farmacia') }}" {% if request.endpoint == 'farmacia' %}class="activo"{% endif %}>Farmacias</a>
+        {% if user.role == 'admin' %}
+        <a href="{{ url_for('panel_ips') }}" {% if request.endpoint == 'panel_ips' %}class="activo"{% endif %}>
+          Panel IPS{% if pendientes_admin %}<span class="nav-badge">{{ pendientes_admin }}</span>{% endif %}
+        </a>
+        {% endif %}
+        <span class="user-badge">{{ user.username }}</span>
+        <a class="nav-salir" href="{{ url_for('logout') }}">Salir</a>
+        {% else %}
+        <a href="{{ url_for('login') }}" {% if request.endpoint == 'login' %}class="activo"{% endif %}>Ingresar</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  {% if user and request.endpoint != 'login' %}
+  {% include 'partials/barra_convenio.html' %}
+  {% endif %}
+
+  <main class="contenedor">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="pie">
+    <div class="pie-inner">
+      <div class="pie-grid">
+        <div>
+          <p class="pie-titulo">IPS Misiones</p>
+          <p>Sistema de depósito digital de cajas de farmacias adheridas</p>
+        </div>
+        <div>
+          <p class="pie-titulo">Farmacias Contratadas</p>
+          <p>Junín 177, Posadas · Misiones</p>
+        </div>
+        <div>
+          <p class="pie-titulo">Soporte Macro</p>
+          <p>{{ macro.mesa_ayuda }}</p>
+          <p class="pie-sec">{{ macro.email_recaudaciones }}</p>
+        </div>
+      </div>
+      <p class="pie-copy">© {{ macro.grupo_deudas }} · Convenio {{ convenio }} · Servicio {{ macro.codigo_servicio }}</p>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Acceso denegado{% endblock %}
+{% block content %}
+<section class="mensaje-centro">
+  <span class="mensaje-ico" aria-hidden="true">!</span>
+  <h1>Acceso denegado</h1>
+  <p class="subtitulo">Tu usuario no tiene permisos para acceder a esta sección.</p>
+  <a class="btn btn-primario btn-lg" href="{{ url_for('index') }}">Volver al inicio</a>
+</section>
+{% endblock %}

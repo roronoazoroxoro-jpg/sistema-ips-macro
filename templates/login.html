@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Ingresar — IPS Macro{% endblock %}
+{% block body_class %}pagina-login{% endblock %}
+{% block content %}
+<div class="login-layout">
+  <section class="login-brand">
+    <div class="login-brand-inner">
+      <span class="etiqueta etiqueta-clara">IPS Misiones · Banco Macro</span>
+      <h1>Sistema de rendición digital de cajas</h1>
+      <p>Publicación de deudas, pago por TAS/transferencia y conciliación automática — sin boletas manuales.</p>
+      <ul class="login-beneficios">
+        <li>Registro centralizado de cierres de farmacia</li>
+        <li>Archivos DeudaPub y DPPPdat según formato EM590</li>
+        <li>Comprobante con QR, convenio y referencia bancaria</li>
+        <li>Panel IPS con conciliación y confirmación</li>
+      </ul>
+      <div class="login-convenio-box">
+        <span>Convenio Macro</span>
+        <strong>{{ convenio }}</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="login-form-wrap">
+    <div class="encabezado-pagina encabezado-compacto">
+      <h2>Ingreso al sistema</h2>
+      <p class="subtitulo">Acceso para farmacias adheridas y administradores IPS</p>
+    </div>
+    <form method="post" class="formulario login-card">
+      <label for="username">Usuario</label>
+      <input id="username" name="username" required placeholder="admin o f001" autocomplete="username">
+
+      <label for="password">Contraseña</label>
+      <input id="password" name="password" type="password" required autocomplete="current-password">
+
+      {% if error %}
+      <div class="alerta alerta-error" role="alert">{{ error }}</div>
+      {% endif %}
+
+      <button type="submit" class="btn btn-primario btn-ancho btn-lg">Ingresar al sistema</button>
+    </form>
+    <div class="caja-demo">
+      <p class="caja-demo-titulo">Acceso demostración</p>
+      <dl class="demo-credenciales">
+        <div><dt>Administrador IPS</dt><dd><code>admin</code> / <code>admin1234</code></dd></div>
+        <div><dt>Farmacia adherida</dt><dd><code>f001</code>, <code>f002</code>… / <code>farmacia1234</code></dd></div>
+      </dl>
+    </div>
+  </section>
+</div>
+{% endblock %}

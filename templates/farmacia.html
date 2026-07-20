@@ -1,0 +1,398 @@
+{% extends "base.html" %}
+
+{% block title %}Registrar depósito — Farmacia{% endblock %}
+
+{% block body_class %}pagina-farmacia{% endblock %}
+
+{% block content %}
+
+<header class="encabezado-pagina encabezado-farmacia">
+
+  <div class="encabezado-farmacia-texto">
+
+    <span class="etiqueta">Farmacia adherida</span>
+
+    <h1>Registrar depósito de caja</h1>
+
+    <p class="subtitulo">Completá el cierre de caja. El sistema generará el comprobante con QR y la referencia para Banco Macro.</p>
+
+  </div>
+
+  <ol class="pasos-formulario" aria-label="Pasos del formulario">
+
+    <li class="paso-activo"><span>1</span> Farmacia</li>
+
+    <li><span>2</span> Periodo</li>
+
+    <li><span>3</span> Depósito</li>
+
+  </ol>
+
+</header>
+
+
+
+<div class="layout-dos-columnas layout-farmacia">
+
+  <form id="form-deposito" class="formulario formulario-ancho formulario-pro"
+    data-es-farmacia="{{ '1' if user.role == 'farmacia' else '0' }}"
+    data-farmacia-id="{{ user.farmacia_id or '' }}">
+
+    <fieldset class="fieldset-paso" data-paso="1">
+
+      <legend><span class="legend-num">1</span> Farmacia</legend>
+
+      <label for="farmacia_select">Farmacia adherida IPS</label>
+
+      <div class="campo-con-icono">
+
+        <svg class="campo-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/><path d="M9 9v.01M9 12v.01M9 15v.01M9 18v.01"/></svg>
+
+        <select id="farmacia_select" {% if user.role != 'farmacia' %}name="farmacia_id" required{% else %}disabled{% endif %}>
+
+          <option value="">— Seleccionar —</option>
+
+          {% for f in farmacias %}
+
+          <option value="{{ f.id }}" {% if user.role == 'farmacia' %}selected{% endif %}>{{ f.nombre }} — {{ f.localidad }} ({{ f.codigo_ips }})</option>
+
+          {% endfor %}
+
+        </select>
+
+      </div>
+
+      {% if user.role == 'farmacia' %}
+
+      <input type="hidden" id="farmacia_id_valor" name="farmacia_id" value="{{ user.farmacia_id }}">
+
+      <p class="campo-ayuda campo-ayuda-ok">
+
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+
+        Tu usuario está vinculado a una única farmacia.
+
+      </p>
+
+      {% endif %}
+
+    </fieldset>
+
+
+
+    <fieldset class="fieldset-paso" data-paso="2">
+
+      <legend><span class="legend-num">2</span> Periodo de la caja</legend>
+
+      <div class="fila-dos">
+
+        <div class="campo-con-icono">
+
+          <label for="periodo_desde">Desde</label>
+
+          <input type="date" id="periodo_desde" name="periodo_desde" required>
+
+        </div>
+
+        <div class="campo-con-icono">
+
+          <label for="periodo_hasta">Hasta</label>
+
+          <input type="date" id="periodo_hasta" name="periodo_hasta" required>
+
+        </div>
+
+      </div>
+
+    </fieldset>
+
+
+
+    <fieldset class="fieldset-paso" data-paso="3">
+
+      <legend><span class="legend-num">3</span> Detalle del depósito</legend>
+
+
+
+      <div class="fila-dos fila-recetas-monto">
+
+        <div>
+
+          <label for="cantidad_recetas">Cantidad de recetas</label>
+
+          <input type="number" id="cantidad_recetas" name="cantidad_recetas" min="0" value="0" required class="input-compacto">
+
+        </div>
+
+        <div class="campo-monto-destacado">
+
+          <label for="monto_total">Monto total a depositar</label>
+
+          <div class="input-monto-wrap">
+
+            <span class="input-monto-simbolo">$</span>
+
+            <input type="number" id="monto_total" name="monto_total" min="0.01" step="0.01" required placeholder="0,00">
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+
+      <p class="campo-seccion-titulo">Canal de pago en Macro</p>
+
+      <div class="grid-metodos-pago" id="selector-metodo" role="radiogroup" aria-label="Canal de pago">
+
+        <button type="button" class="metodo-opcion activo" data-metodo="tas_macro" aria-pressed="true">
+
+          <span class="metodo-opcion-icono metodo-icono-tas" aria-hidden="true"></span>
+
+          <span class="metodo-opcion-texto">
+
+            <strong>Terminal TAS</strong>
+
+            <small>Autoservicio · efectivo</small>
+
+          </span>
+
+        </button>
+
+        <button type="button" class="metodo-opcion" data-metodo="ventanilla_macro" aria-pressed="false">
+
+          <span class="metodo-opcion-icono metodo-icono-ventanilla" aria-hidden="true"></span>
+
+          <span class="metodo-opcion-texto">
+
+            <strong>Ventanilla</strong>
+
+            <small>Sucursal · efectivo o cheque</small>
+
+          </span>
+
+        </button>
+
+        <button type="button" class="metodo-opcion" data-metodo="transferencia_macro" aria-pressed="false">
+
+          <span class="metodo-opcion-icono metodo-icono-transferencia" aria-hidden="true"></span>
+
+          <span class="metodo-opcion-texto">
+
+            <strong>Transferencia</strong>
+
+            <small>Desde cuenta Macro</small>
+
+          </span>
+
+        </button>
+
+        <button type="button" class="metodo-opcion" data-metodo="home_banking" aria-pressed="false">
+
+          <span class="metodo-opcion-icono metodo-icono-hb" aria-hidden="true"></span>
+
+          <span class="metodo-opcion-texto">
+
+            <strong>Home Banking</strong>
+
+            <small>Banca internet Macro</small>
+
+          </span>
+
+        </button>
+
+      </div>
+
+      <select id="metodo_deposito" name="metodo_deposito" class="select-oculto" tabindex="-1" aria-hidden="true">
+
+        <option value="tas_macro" selected>Terminal TAS</option>
+
+        <option value="ventanilla_macro">Ventanilla</option>
+
+        <option value="transferencia_macro">Transferencia</option>
+
+        <option value="home_banking">Home Banking</option>
+
+      </select>
+
+
+
+      <div id="panel-asignacion" class="panel-asignacion" aria-live="polite">
+
+        <div class="panel-asignacion-cab">
+
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+
+          <span>Asignación automática del monto</span>
+
+        </div>
+
+        <div class="panel-asignacion-filas">
+
+          <div class="asignacion-fila asignacion-efectivo">
+
+            <span class="asignacion-etiqueta">Efectivo</span>
+
+            <strong id="preview-efectivo">$ 0,00</strong>
+
+          </div>
+
+          <div class="asignacion-fila asignacion-transferencia">
+
+            <span class="asignacion-etiqueta">Transferencia</span>
+
+            <strong id="preview-transferencia">$ 0,00</strong>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+
+      <label class="toggle-desglose-card">
+
+        <input type="checkbox" id="toggle_desglose" name="toggle_desglose">
+
+        <span class="toggle-desglose-visual" aria-hidden="true"></span>
+
+        <span class="toggle-desglose-texto">
+
+          <strong>Dividir entre efectivo y transferencia</strong>
+
+          <small>Solo si una parte del monto va por cada canal</small>
+
+        </span>
+
+      </label>
+
+
+
+      <div id="bloque_desglose" class="bloque-desglose oculto">
+
+        <div class="fila-dos">
+
+          <div>
+
+            <label for="monto_efectivo">Monto en efectivo ($)</label>
+
+            <input type="number" id="monto_efectivo" name="monto_efectivo" min="0" step="0.01" value="0">
+
+          </div>
+
+          <div>
+
+            <label for="monto_transferencia">Monto por transferencia ($)</label>
+
+            <input type="number" id="monto_transferencia" name="monto_transferencia" min="0" step="0.01" value="0">
+
+          </div>
+
+        </div>
+
+        <p class="campo-ayuda">La suma de ambos campos debe ser igual al monto total.</p>
+
+      </div>
+
+
+
+      <label for="observaciones">Observaciones (opcional)</label>
+
+      <textarea id="observaciones" name="observaciones" rows="2" placeholder="Ej.: caja semanal, turno mañana"></textarea>
+
+    </fieldset>
+
+
+
+    <button type="submit" class="btn btn-primario btn-ancho btn-lg btn-submit-deposito">
+
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+
+      Generar depósito y comprobante
+
+    </button>
+
+  </form>
+
+
+
+  <aside class="panel-lateral panel-lateral-pro">
+
+    <article class="panel-lateral-card panel-lateral-hero">
+
+      <div class="panel-lateral-icono panel-icono-guia" aria-hidden="true"></div>
+
+      <h2>Antes de pagar en Macro</h2>
+
+      <ol class="lista-guia lista-guia-numerada">
+
+        <li>Registrá el depósito y descargá el comprobante con QR.</li>
+
+        <li>Esperá que el IPS publique tu deuda en el banco.</li>
+
+        <li>Usá el convenio <strong>{{ convenio }}</strong> en TAS o ventanilla.</li>
+
+        <li>Indicá la referencia exacta del comprobante.</li>
+
+      </ol>
+
+    </article>
+
+    <article class="panel-lateral-card panel-lateral-destacado">
+
+      <div class="panel-lateral-icono panel-icono-tas" aria-hidden="true"></div>
+
+      <h2>Terminal TAS</h2>
+
+      <ol class="lista-guia lista-guia-compacta">
+
+        <li>Pagá → Servicio integral de recaudaciones</li>
+
+        <li>Convenio: <strong>{{ convenio }}</strong></li>
+
+        <li>Seleccionar tu registro y confirmar monto</li>
+
+      </ol>
+
+    </article>
+
+    <article class="panel-lateral-card">
+
+      <div class="panel-lateral-icono panel-icono-banco" aria-hidden="true"></div>
+
+      <h2>Transferencia / HB</h2>
+
+      <dl class="dl-compacta dl-datos-banco">
+
+        <dt>CBU</dt>
+
+        <dd><code class="copiable copiable-pro" data-copiar>{{ macro.cbu_destino }}</code></dd>
+
+        <dt>Alias</dt>
+
+        <dd><code class="copiable copiable-pro" data-copiar>{{ macro.alias }}</code></dd>
+
+      </dl>
+
+    </article>
+
+  </aside>
+
+</div>
+
+
+
+<div id="resultado" class="resultado resultado-flotante oculto" role="status"></div>
+
+{% endblock %}
+
+
+
+{% block scripts %}
+
+<script src="{{ url_for('static', filename='js/farmacia.js') }}?v=5"></script>
+
+{% endblock %}
+

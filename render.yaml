@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: sistema-ips-macro
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn "app:app" --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 120
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: "3.12.0"
+      - key: IPS_ADMIN_USER
+        value: admin
+      - key: IPS_ADMIN_PASSWORD
+        value: admin1234
+      - key: IPS_FARMACIA_PASSWORD
+        value: farmacia1234

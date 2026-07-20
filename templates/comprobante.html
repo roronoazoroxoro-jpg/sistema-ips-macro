@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Comprobante {{ deposito.codigo_deposito }}{% endblock %}
+{% block content %}
+<article class="comprobante" id="comprobante-print">
+  <div class="comprobante-banda">
+    <div class="banda-izq">
+      <span class="banda-titulo">IPS Misiones</span>
+      <span class="banda-sub">Farmacias Contratadas</span>
+    </div>
+    <div class="banda-der">
+      <span class="banda-titulo">Banco Macro</span>
+      <span class="banda-sub">Servicio Integral de Recaudaciones</span>
+    </div>
+  </div>
+
+  <header class="comprobante-cab">
+    <div class="comprobante-titulos">
+      <p class="comprobante-tipo">Comprobante oficial de depósito</p>
+      <h1>Rendición de caja — Farmacia adherida</h1>
+      <p class="codigo-grande">{{ deposito.codigo_deposito }}</p>
+    </div>
+    <div class="qr-box">
+      <img src="{{ url_for('api_qr', dep_id=deposito.id) }}" alt="QR depósito IPS Macro" width="128" height="128">
+      <span class="qr-leyenda">Presentar en Macro</span>
+    </div>
+  </header>
+
+  <div class="comprobante-estado-fila">
+    <span class="pill-estado pill-{{ deposito.estado }}">{{ deposito.estado|capitalize }}</span>
+    <span class="pill-metodo">{{ instrucciones.metodo_etiqueta }}</span>
+    <span class="comprobante-fecha">Generado {{ deposito.creado_en }}</span>
+  </div>
+
+  <div class="comprobante-convenio-fila">
+    <div><span>Convenio Macro</span><strong>{{ instrucciones.convenio }}</strong></div>
+    <div><span>Servicio</span><strong>{{ instrucciones.codigo_servicio }}</strong></div>
+    <div><span>Grupo</span><strong>{{ instrucciones.grupo_deudas }}</strong></div>
+  </div>
+
+  <section class="comprobante-seccion">
+    <h2>Datos de la farmacia</h2>
+    <dl class="dl-grid">
+      <dt>Nombre</dt><dd>{{ deposito.farmacia_nombre }}</dd>
+      <dt>Código IPS</dt><dd>{{ deposito.codigo_ips }}</dd>
+      <dt>Localidad</dt><dd>{{ deposito.localidad }}</dd>
+      <dt>Periodo caja</dt><dd>{{ deposito.periodo_desde }} al {{ deposito.periodo_hasta }}</dd>
+      <dt>Recetas</dt><dd>{{ deposito.cantidad_recetas }}</dd>
+      <dt>Monto total</dt><dd class="monto">$ {{ "%.2f"|format(deposito.monto_total) }}</dd>
+    </dl>
+  </section>
+
+  <section class="comprobante-seccion datos-macro">
+    <h2>Datos bancarios — Banco Macro</h2>
+    <dl class="dl-grid">
+      <dt>Banco</dt><dd>{{ instrucciones.banco }}</dd>
+      <dt>Titular</dt><dd>{{ instrucciones.titular }}</dd>
+      <dt>CBU</dt>
+      <dd><code class="dato-copiable copiable" data-copiar>{{ instrucciones.cbu }}</code></dd>
+      <dt>Alias</dt>
+      <dd><code class="dato-copiable copiable" data-copiar>{{ instrucciones.alias }}</code></dd>
+      <dt>CUIT IPS</dt><dd>{{ instrucciones.cuit }}</dd>
+      <dt>Cuenta recaudadora</dt><dd>{{ instrucciones.cuenta_recaudadora }}</dd>
+      <dt>Concepto</dt><dd>{{ instrucciones.concepto }}</dd>
+    </dl>
+    <div class="caja-referencia">
+      <span class="caja-referencia-label">Referencia obligatoria</span>
+      <strong class="caja-referencia-valor copiable" data-copiar>{{ instrucciones.referencia_obligatoria }}</strong>
+      <button type="button" class="btn-copiar no-print" data-copiar="{{ instrucciones.referencia_obligatoria }}">Copiar referencia</button>
+    </div>
+  </section>
+
+  <section class="comprobante-seccion">
+    <h2>Instrucciones — {{ instrucciones.metodo_etiqueta }}</h2>
+    <ol class="instrucciones-lista">
+      {% for paso in instrucciones.metodos %}
+      <li>{{ paso }}</li>
+      {% endfor %}
+    </ol>
+  </section>
+
+  {% if deposito.metodo_deposito == 'tas_macro' %}
+  <section class="comprobante-seccion seccion-tas">
+    <h2>Guía rápida terminal TAS</h2>
+    <ol class="instrucciones-lista">
+      {% for paso in instrucciones.tas %}
+      <li>{{ paso }}</li>
+      {% endfor %}
+    </ol>
+  </section>
+  {% endif %}
+
+  {% if deposito.observaciones %}
+  <p class="obs"><strong>Observaciones:</strong> {{ deposito.observaciones }}</p>
+  {% endif %}
+
+  <footer class="pie-comprobante">
+    Documento generado por el sistema IPS Misiones · Mesa de ayuda Macro: {{ instrucciones.mesa_ayuda }}
+  </footer>
+</article>
+
+<div class="acciones-comprobante no-print">
+  <button type="button" class="btn btn-primario btn-lg" onclick="window.print()">Imprimir comprobante</button>
+  <a class="btn btn-secundario btn-lg" href="{{ url_for('farmacia') }}">Nuevo depósito</a>
+</div>
+{% endblock %}

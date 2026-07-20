@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}Depósito digital de cajas — IPS Macro{% endblock %}
+{% block content %}
+<section class="hero hero-principal">
+  <div class="hero-contenido">
+    <span class="etiqueta etiqueta-nueva">Servicio Integral de Recaudaciones · Sin boletas manuales</span>
+    <h1>Rendición digital de cajas de farmacias</h1>
+    <p class="lead">
+      Publicación de deudas en Banco Macro, pago por TAS, transferencia o home banking,
+      y conciliación automática con archivo de rendición <code>DPPPdat</code>.
+    </p>
+    <div class="hero-datos">
+      <div class="dato-hero"><span>Convenio</span><strong>{{ convenio }}</strong></div>
+      <div class="dato-hero"><span>Servicio</span><strong>{{ macro.codigo_servicio }}</strong></div>
+      <div class="dato-hero"><span>Grupo</span><strong>{{ macro.grupo_deudas }}</strong></div>
+    </div>
+    <div class="acciones-hero">
+      <a class="btn btn-primario btn-lg" href="{{ url_for('farmacia') }}">Registrar depósito</a>
+      {% if user.role == 'admin' %}
+      <a class="btn btn-secundario btn-lg" href="{{ url_for('panel_ips') }}">Panel IPS</a>
+      {% endif %}
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="tarjeta-demo tarjeta-demo-pro">
+      <div class="demo-cab">
+        <span class="demo-etiqueta">Comprobante IPS-MACRO</span>
+        <span class="pill-estado pill-pendiente">Pendiente</span>
+      </div>
+      <code class="demo-codigo">IPS-MACRO-2606171200-001-0042</code>
+      <div class="demo-qr" aria-hidden="true"></div>
+      <div class="demo-fila"><span>Referencia</span><code>F-001|IPS-MACRO-…</code></div>
+      <div class="demo-fila"><span>Convenio</span><strong>{{ convenio }}</strong></div>
+      <div class="demo-fila"><span>Monto</span><strong class="demo-monto">$ 246.820,57</strong></div>
+    </div>
+  </div>
+</section>
+
+<section class="comparacion" aria-labelledby="titulo-cambio">
+  <h2 id="titulo-cambio" class="seccion-titulo">Evolución del procedimiento</h2>
+  <div class="comparacion-grid">
+    <article class="comparacion-card comparacion-antes">
+      <span class="comparacion-etiqueta">Procedimiento anterior</span>
+      <h3>Boletas y depósitos manuales</h3>
+      <ul>
+        <li>Sin publicación de deudas en el banco</li>
+        <li>Referencias escritas a mano en ventanilla</li>
+        <li>Conciliación manual y sin trazabilidad</li>
+      </ul>
+    </article>
+    <article class="comparacion-card comparacion-ahora">
+      <span class="comparacion-etiqueta">Procedimiento actual</span>
+      <h3>Recaudaciones digitales Macro</h3>
+      <ul>
+        <li>Archivo <strong>DeudaPub</strong> con CUIT y monto (EM590)</li>
+        <li>Pago en TAS, ventanilla, transferencia o HB</li>
+        <li>Conciliación con archivo <strong>DPPPdat</strong></li>
+      </ul>
+    </article>
+  </div>
+</section>
+
+<section class="pasos" aria-labelledby="titulo-pasos">
+  <h2 id="titulo-pasos" class="seccion-titulo">Flujo operativo completo</h2>
+  <ol class="timeline-pasos">
+    <li>
+      <div class="timeline-marker">1</div>
+      <div class="timeline-body">
+        <h3>Cierre de caja</h3>
+        <p>La farmacia registra periodo, recetas y monto en el sistema IPS.</p>
+      </div>
+    </li>
+    <li>
+      <div class="timeline-marker">2</div>
+      <div class="timeline-body">
+        <h3>Publicación al banco</h3>
+        <p>El IPS genera y envía <code>DeudaPubBancoMacro</code> vía SFTP/WinSCP.</p>
+      </div>
+    </li>
+    <li>
+      <div class="timeline-marker">3</div>
+      <div class="timeline-body">
+        <h3>Pago en Macro</h3>
+        <p>La farmacia abona por TAS (convenio {{ convenio }}), transferencia o home banking.</p>
+      </div>
+    </li>
+    <li>
+      <div class="timeline-marker">4</div>
+      <div class="timeline-body">
+        <h3>Rendición bancaria</h3>
+        <p>Macro devuelve <code>DPPPdat_*.lis</code> con pagos acreditados.</p>
+      </div>
+    </li>
+    <li>
+      <div class="timeline-marker">5</div>
+      <div class="timeline-body">
+        <h3>Conciliación IPS</h3>
+        <p>Se importa la rendición, se cruzan datos y se confirman los depósitos.</p>
+      </div>
+    </li>
+  </ol>
+</section>
+
+<section class="metodos" aria-labelledby="titulo-canales">
+  <h2 id="titulo-canales" class="seccion-titulo">Canales de pago habilitados</h2>
+  <div class="tarjetas-metodo tarjetas-canales">
+    <article class="tarjeta-canal">
+      <div class="icono-canal icono-tas"></div>
+      <h3>Terminal TAS</h3>
+      <p>Pagá → Recaudaciones → convenio <strong>{{ convenio }}</strong> → seleccionar registro → billetes.</p>
+    </article>
+    <article class="tarjeta-canal">
+      <div class="icono-canal icono-ventanilla"></div>
+      <h3>Ventanilla</h3>
+      <p>Presentar comprobante con QR, convenio y referencia obligatoria al operador.</p>
+    </article>
+    <article class="tarjeta-canal">
+      <div class="icono-canal icono-transferencia"></div>
+      <h3>Transferencia / HB</h3>
+      <p>CBU <code>{{ macro.cbu_destino[:8] }}…</code> o alias <code>{{ macro.alias }}</code> con referencia exacta.</p>
+    </article>
+    <article class="tarjeta-canal">
+      <div class="icono-canal icono-archivo"></div>
+      <h3>Archivos Macro</h3>
+      <p>Envío <code>DeudaPub</code> · Recepción <code>DPPPdat</code> · Formato EM590 oficial.</p>
+    </article>
+  </div>
+</section>
+
+{% if user.role == 'admin' %}
+<section class="panel-info panel-tarjeta">
+  <h2 class="seccion-titulo">Operación IPS — Intercambio con el banco</h2>
+  <div class="info-grid">
+    <article>
+      <h3>Envío recaudación</h3>
+      <p>Descargar archivo desde Panel IPS y subir a:</p>
+      <code class="bloque-ruta">{{ macro.sftp_carpeta_envio }}</code>
+    </article>
+    <article>
+      <h3>Recepción rendición</h3>
+      <p>Colocar <code>DPPPdat_*.lis</code> desde WinSCP en:</p>
+      <code class="bloque-ruta">{{ macro.sftp_carpeta_recepcion }}</code>
+    </article>
+    <article>
+      <h3>Modalidad</h3>
+      <p>Deuda publicada con monto (servicio {{ macro.codigo_servicio }}). Moneda {{ macro.codigo_moneda }} — Pesos.</p>
+    </article>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

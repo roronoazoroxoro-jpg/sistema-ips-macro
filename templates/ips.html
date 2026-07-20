@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block title %}Panel IPS — Depósitos{% endblock %}
+{% block content %}
+<header class="encabezado-pagina">
+  <span class="etiqueta">Farmacias Contratadas · Administración</span>
+  <h1>Panel IPS — Control de recaudaciones</h1>
+  <p class="subtitulo">Publicación de deudas, seguimiento de pagos y conciliación con archivos Macro.</p>
+</header>
+
+<div class="stats-panel stats-panel-4">
+  <article class="stat-card stat-pendiente">
+    <span class="stat-num">{{ pendientes|length }}</span>
+    <span class="stat-label">Depósitos pendientes</span>
+  </article>
+  <article class="stat-card stat-monto">
+    <span class="stat-num stat-num-monto">${{ "%.0f"|format(total_pendiente) }}</span>
+    <span class="stat-label">Monto pendiente de acreditar</span>
+  </article>
+  <article class="stat-card stat-envio">
+    <span class="stat-num">{{ sin_enviar }}</span>
+    <span class="stat-label">Sin enviar a Macro</span>
+  </article>
+  <article class="stat-card stat-confirmado">
+    <span class="stat-num">{{ confirmados|length }}</span>
+    <span class="stat-label">Últimos confirmados</span>
+  </article>
+</div>
+
+<section class="workflow-panel panel-tarjeta">
+  <h2>Flujo de trabajo IPS</h2>
+  <div class="workflow-pasos">
+    <div class="workflow-paso">
+      <span class="workflow-num">1</span>
+      <div>
+        <strong>Exportar recaudación</strong>
+        <p>Genera <code>DeudaPubBancoMacro</code> y súbelo a WinSCP.</p>
+        <a class="btn btn-primario btn-sm" href="{{ url_for('api_export_recaudacion') }}">Descargar DeudaPub</a>
+      </div>
+    </div>
+    <div class="workflow-paso">
+      <span class="workflow-num">2</span>
+      <div>
+        <strong>Enviar al banco</strong>
+        <p>Carpeta SFTP de envío:</p>
+        <code class="bloque-ruta">{{ macro.sftp_carpeta_envio }}</code>
+      </div>
+    </div>
+    <div class="workflow-paso">
+      <span class="workflow-num">3</span>
+      <div>
+        <strong>Recibir rendición</strong>
+        <p>Macro devuelve <code>DPPPdat_*.lis</code> en:</p>
+        <code class="bloque-ruta">{{ macro.sftp_carpeta_recepcion }}</code>
+      </div>
+    </div>
+    <div class="workflow-paso">
+      <span class="workflow-num">4</span>
+      <div>
+        <strong>Conciliar y confirmar</strong>
+        <p>Importá el archivo abajo para cruzar pagos automáticamente.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="bloque-panel panel-tarjeta panel-macro">
+  <div class="panel-cab">
+    <h2>Conciliación — Archivo de rendición</h2>
+    <span class="badge">DPPPdat</span>
+  </div>
+  <p class="panel-macro-desc">
+    Importá el archivo <code>DPPPdat_*.lis</code> que devuelve Banco Macro.
+    El sistema cruza CUIT, código deudor y monto con los depósitos pendientes.
+  </p>
+  <form id="form-rendicion" class="formulario formulario-conciliacion" enctype="multipart/form-data">
+    <div class="fila-archivo">
+      <div>
+        <label for="archivo_rendicion">Archivo de rendición</label>
+        <input type="file" id="archivo_rendicion" name="archivo" accept=".lis,.txt" required>
+      </div>
+      <label class="checkbox-inline">
+        <input type="checkbox" id="confirmar_auto" name="confirmar" value="1" checked>
+        Confirmar automáticamente las coincidencias
+      </label>
+    </div>
+    <button type="submit" class="btn btn-primario btn-lg">Importar y conciliar</button>
+  </form>
+  <div id="resultado-conciliacion" class="resultado oculto" role="status"></div>
+</section>
+
+<section class="bloque-panel panel-tarjeta">
+  <div class="panel-cab">
+    <h2>Pendientes de confirmación</h2>
+    <span class="badge">{{ pendientes|length }}</span>
+    <a class="btn btn-secundario btn-mini-export" href="{{ url_for('api_export_csv') }}">Exportar CSV</a>
+  </div>
+  {% if pendientes %}
+  <div class="tabla-scroll">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Farmacia</th>
+          <th>Periodo</th>
+          <th>Monto</th>
+          <th>Canal</th>
+          <th>Macro</th>
+          <th>Fecha</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in pendientes %}
+        <tr data-id="{{ d.id }}">
+          <td><code class="codigo-tabla">{{ d.codigo_deposito }}</code></td>
+          <td>
+            <strong>{{ d.farmacia_nombre }}</strong>
+            <span class="celda-sub">{{ d.localidad }} · {{ d.codigo_ips }}</span>
+          </td>
+          <td>{{ d.periodo_desde }} → {{ d.periodo_hasta }}</td>
+          <td class="celda-monto">${{ "%.2f"|format(d.monto_total) }}</td>
+          <td>
+            <span class="chip chip-{{ d.metodo_deposito }}">{{ metodos_deposito.get(d.metodo_deposito, d.metodo_deposito) }}</span>
+          </td>
+          <td>
+            {% if d.archivo_recaudacion_en %}
+            <span class="chip chip-enviado" title="Enviado {{ d.archivo_recaudacion_en[:10] }}">Publicado</span>
+            {% else %}
+            <span class="chip chip-pendiente-envio">Sin publicar</span>
+            {% endif %}
+          </td>
+          <td>{{ d.creado_en[:10] }}</td>
+          <td class="acciones-tabla">
+            <a class="btn-link" href="{{ url_for('comprobante', dep_id=d.id) }}" target="_blank">Ver</a>
+            <button type="button" class="btn-mini confirmar" data-id="{{ d.id }}">Confirmar</button>
+            <button type="button" class="btn-mini cancelar" data-id="{{ d.id }}">Cancelar</button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="vacio">No hay depósitos pendientes.</p>
+  {% endif %}
+</section>
+
+<section class="bloque-panel panel-tarjeta">
+  <h2>Últimos confirmados</h2>
+  {% if confirmados %}
+  <div class="tabla-scroll">
+    <table class="tabla tabla-suave">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Farmacia</th>
+          <th>Monto</th>
+          <th>Confirmado</th>
+          <th>Ref. Macro</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in confirmados %}
+        <tr>
+          <td><code class="codigo-tabla">{{ d.codigo_deposito }}</code></td>
+          <td>{{ d.farmacia_nombre }}</td>
+          <td class="celda-monto">${{ "%.2f"|format(d.monto_total) }}</td>
+          <td>{{ d.confirmado_en[:10] if d.confirmado_en else '—' }}</td>
+          <td><code class="codigo-tabla-sm">{{ d.referencia_macro or '—' }}</code></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="vacio">Sin depósitos confirmados aún.</p>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/ips.js') }}"></script>
+{% endblock %}
